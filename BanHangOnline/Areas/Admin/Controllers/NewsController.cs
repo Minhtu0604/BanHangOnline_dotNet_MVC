@@ -1,5 +1,6 @@
 ﻿using BanHangOnline.Models;
 using BanHangOnline.Models.EF;
+using PagedList;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,9 +13,22 @@ namespace BanHangOnline.Areas.Admin.Controllers
     {
         private readonly ApplicationDbContext db = new ApplicationDbContext();
         // GET: Admin/News
-        public ActionResult Index()
+        public ActionResult Index(string Searchtext, int? page )
         {
-            var items = db.News.OrderByDescending(x=>x.Id).ToList();
+            var pageSize = 10;
+            if(page == null)
+            {
+                page = 1;
+            }
+            IEnumerable<News> items = db.News.OrderByDescending(x => x.Id);
+            if (!string.IsNullOrEmpty(Searchtext))
+            {
+                items = items.Where(x=>x.Alias.Equals(Searchtext) || x.Tiltle.Contains(Searchtext));
+            }
+            var pageIndex = page.HasValue ? Convert.ToInt32(page) : 1;
+             items = items.ToPagedList(pageIndex, pageSize);
+            ViewBag.PageSize = pageSize;
+            ViewBag.Page = page;
             return View(items);
         }
 
@@ -29,7 +43,7 @@ namespace BanHangOnline.Areas.Admin.Controllers
             if(ModelState.IsValid)//Kiểm tra dữ liệu hợp lệ
             {
                 model.CreatesDate = DateTime.Now;
-                model.CategoryId = 12;
+                model.CategoryId = 1;
                 model.ModifiedDate = DateTime.Now;
                 model.Alias=BanHangOnline.Models.Common.Filter.FilterChar(model.Tiltle);
                 db.News.Add(model);

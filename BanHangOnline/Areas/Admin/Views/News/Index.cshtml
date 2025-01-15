@@ -1,4 +1,6 @@
-﻿@model IEnumerable<BanHangOnline.Models.EF.News>
+﻿@model PagedList.PagedList<BanHangOnline.Models.EF.News>
+@using PagedList.Mvc;
+@using PagedList;
 @{
     ViewBag.Title = "Danh sách tin tức";
     Layout = "~/Areas/Admin/Views/Shared/_Layout.cshtml";
@@ -49,6 +51,20 @@
             </div>
         </div>
         <div class="card-body">
+            <div class="row">
+                <div class="col-6">
+                    @using (Html.BeginForm("index", "News", FormMethod.Get, new { }))
+                    {
+                        <div class="input-group input-group-sm">
+                            @Html.TextBox("Searchtext")
+                            @*<input type="text" name="searchtext" class="form-control">*@
+                            <span class="input-group-append">
+                                <button type="submit" class="btn btn-info btn-flat">Tìm kiếm</button>
+                            </span>
+                        </div>
+                    }
+                </div>
+            </div>
             <table class="table table_hover">
                 <thead>
                     <tr>
@@ -58,14 +74,13 @@
                         <th>Tiêu đề tin</th>
                         <th>Ngày tạo</th>
                         <th>Hiển thị</th>
-                        <th>Thứ tự</th>
-                        <th></th>
+                        <th style="width: 150px;"></th>
                     </tr>
                 </thead>
                 <tbody>
                     @if (Model != null && Model.Any())
                     {
-                        var i = 1;
+                        var i = ((ViewBag.Page - 1) * ViewBag.PageSize) + 1;
                         foreach (var item in Model)
                         {
                             var strCheck = item.IsActive ? " <i class='fa fa-check text-success'></i>" : "<i class='fas fa-times text-danger'></i>";
@@ -91,9 +106,16 @@
                         <tr>
                             <td colspan="4">Không có bản ghi nào !!!</td>
                         </tr>
-                    }
+                        }
                 </tbody>
             </table>
+            <div class="row">
+                <div class="col-6"></div>
+                <div class="col-6" style="text-align: right">
+                    @Html.PagedListPager(Model, page => Url.Action("Index", new { page }))
+                </div>
+            </div>
+           
         </div>
         <!-- /.card-body -->
         <div class="card-footer">
@@ -115,7 +137,7 @@
                 var str = "";
                 var checkbox = $(this).parents('.card').find('tr td input:checkbox');
                 var i = 0;
-                checkbox.each(function () { 
+                checkbox.each(function () {
                     if (this.checked) {
                         checkbox.attr('selected', 'checked');
                         var _id = $(this).val();
@@ -129,7 +151,7 @@
                         checkbox.attr('selected', '');
                     }
                 });
-                
+
                 if (str.length > 0) {
                     var conf = confirm("Bạn có muốn xóa các bản ghi này hay không ?");
                     if (conf === true) {
